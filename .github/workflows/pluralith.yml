@@ -20,6 +20,8 @@ jobs:
               run: mkdir pluralith-executables
             - name: Download Pluralith Executables from S3 bucket
               run: aws s3 sync s3://pluralith-executables/ ./pluralith-executables
-            - name: Test Dowloaded Executables
-              run: ls -l ./pluralith-executables
+            - name: Change permissions for Pluralith Executables
+              run: chmod +x ./pluralith-executables/pluralith && chmod +x ./pluralith-executables/pluralith-cli-graphing
+            - name: Check executables have permissions
+              run: ls -la ./pluralith-executables
                 
