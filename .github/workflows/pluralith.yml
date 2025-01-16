@@ -11,6 +11,5 @@ jobs:
               uses: actions/checkout@v4
             - name: Check whether the .aws/configuration and credentials file exists
               run: |
-                    cd ~/.aws
-                    ls
+                    ls -la
                 
