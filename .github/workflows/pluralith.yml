@@ -29,5 +29,9 @@ jobs:
             - name: Pluralith login
               run: pluralith login --api-key ${{ secrets.PLURALITH_API_KEY }}
             - name: Check whether the Pluralith directory exists
-              run: ls -la ~/
+              run: ls -la ~/Pluralith
+            - name: Move pluralith-cli-graphing to the Pluralith directory
+              run: mv ./pluralith-executables/pluralith-cli-graphing ~/Pluralith/bin/
+            - name: Check whether the pluralith-cli-graphing executable has been moved to the Pluralith directory
+              run: ls -la ~/Pluralith/bin/
                 
