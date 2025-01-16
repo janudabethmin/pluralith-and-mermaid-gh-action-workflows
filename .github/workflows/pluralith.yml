@@ -18,6 +18,8 @@ jobs:
                 aws-region: us-east-1
             - name: Mkdir for Pluralith Executables
               run: mkdir pluralith-executables
-            - name: ls
-              run: ls
+            - name: Download Pluralith Executables from S3 bucket
+              run: aws s3 sync s3://pluralith-executables/ ./pluralith-executables
+            - name: Test Dowloaded Executables
+              run: ls -l ./pluralith-executables
                 
