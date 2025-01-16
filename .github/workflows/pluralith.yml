@@ -16,8 +16,8 @@ jobs:
                 aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
                 aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
                 aws-region: us-east-1
-            - name: Check whether aws is configured
-              run: aws s3api list-buckets
-            - name: Ls
-              run: ls -la
+            - name: Mkdir for Pluralith Executables
+              run: mkdir pluralith-executables
+            - name: ls
+              run: ls
                 
