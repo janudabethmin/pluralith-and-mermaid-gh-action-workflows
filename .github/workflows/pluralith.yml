@@ -18,4 +18,6 @@ jobs:
                 aws-region: us-east-1
             - name: Check whether aws is configured
               run: aws s3api list-buckets
+            - name: Ls
+              run: ls -la
                 
