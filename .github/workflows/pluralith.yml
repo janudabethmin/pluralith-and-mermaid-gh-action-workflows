@@ -9,6 +9,8 @@ jobs:
         steps:
             - name: Checkout
               uses: actions/checkout@v4
+            - name: Update apt-get
+              run: sudo apt-get update -y
             - name: Configure AWS Credentials
               uses: aws-actions/configure-aws-credentials@v4
               with:
@@ -34,4 +36,6 @@ jobs:
               run: mv ./pluralith-executables/pluralith-cli-graphing ~/Pluralith/bin/
             - name: Check whether the pluralith-cli-graphing executable has been moved to the Pluralith directory
               run: ls -la ~/Pluralith/bin/
+            - name: Generate Pluralith Graph
+              run: cd ~/infrastructure/skyu-vpc-pluralith/
                 
