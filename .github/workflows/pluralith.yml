@@ -1,0 +1,11 @@
+name: Pluralith Workflox
+run-name: Pluralith Workflow
+on:
+    workflow_dispatch:
+jobs:
+    pluralith:
+        name: Pluralith Job
+        runs-on: ubuntu-latest
+        steps:
+            - name: echo
+              run: echo "Hello, World!"
