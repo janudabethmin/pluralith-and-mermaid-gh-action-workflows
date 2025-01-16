@@ -4,8 +4,20 @@ on:
     workflow_dispatch:
 jobs:
     pluralith:
-        name: Pluralith Job
+        name: Pluralith Graph Generation
         runs-on: ubuntu-latest
         steps:
-            - name: echo
-              run: echo "Hello, World!"
+            - name: Checkout
+              uses: actions/checkout@v4
+            - name: Check whether the .aws/configuration and credentials file exists
+              run: |
+                  if [ -f ~/.aws/config ]; then
+                      echo "AWS config file exists"
+                  else
+                      echo "AWS config file does not exist"
+                  fi
+                  if [ -f ~/.aws/credentials ]; then
+                      echo "AWS credentials file exists"
+                  else
+                      echo "AWS credentials file does not exist"
+                  fi
