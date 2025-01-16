@@ -29,5 +29,5 @@ jobs:
             - name: Pluralith login
               run: pluralith login --api-key ${{ secrets.PLURALITH_API_KEY }}
             - name: Check whether the Pluralith directory exists
-              run: ls -la ./Pluralith
+              run: ls -la ~/
                 
