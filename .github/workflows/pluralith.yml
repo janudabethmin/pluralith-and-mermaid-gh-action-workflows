@@ -40,5 +40,5 @@ jobs:
             - name: Check whether the pluralith-cli-graphing executable has been moved to the Pluralith directory
               run: ls -la ~/Pluralith/bin/
             - name: Generate Pluralith Graph
-              run: ls ~/
+              run: pwd
                 
