@@ -43,7 +43,7 @@ jobs:
               uses: hashicorp/setup-terraform@v3
             - name: Modify all module source paths in main.tf (Remove ../../../)
               run: |
-                sed -i 's|\.\./\.\./\.\./||g' path/to/main.tf
+                sed -i 's|\.\./\.\./\.\./||g' ./infrastructure/skyu-vpc-pluralith/main.tf
             - name: Show the modified main.tf file
               run: cat ./infrastructure/skyu-vpc-pluralith/main.tf
             - name: Run Terraform Plan
