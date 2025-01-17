@@ -46,6 +46,34 @@ jobs:
                 sed -i 's|\.\./\.\./\.\./||g' ./infrastructure/skyu-vpc-pluralith/main.tf
             - name: Show the modified main.tf file
               run: cat ./infrastructure/skyu-vpc-pluralith/main.tf
+              - name: Install jq
+              run: sudo apt-get install -y jq
+            - name: Parse Terragrunt inputs and generate terraform.tfvars
+              run: |
+                # Extract inputs from terragrunt.hcl
+                inputs=$(grep -A 100 "inputs = {" terragrunt.hcl | sed -n '/inputs = {/,/}/p' | sed '1d;$d')
+      
+                # Generate terraform.tfvars
+                echo "$inputs" > terraform.tfvars
+      
+                echo "Generated terraform.tfvars:"
+                cat terraform.tfvars
+            - name: Generate provider.tf
+              run: |
+                # Extract remote state configuration
+                backend=$(grep -A 100 "backend = " terragrunt.hcl | sed -n '/backend = {/,/}/p' | sed '1d;$d')
+      
+                # Generate provider.tf
+                cat <<EOF > provider.tf
+                terraform {
+                  backend "s3" {
+                    $backend
+                  }
+                }
+                EOF
+
+                echo "Generated provider.tf:"
+                cat provider.tf
             - name: Run Terraform Plan
               run: cd ./infrastructure/skyu-vpc-pluralith && terraform init && terraform plan
             - name: Look at the files in the skyu-vpc-pluralith directory
