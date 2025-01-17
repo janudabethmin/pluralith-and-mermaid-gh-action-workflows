@@ -64,7 +64,7 @@ jobs:
                 terragrunt /usr/local/bin/terragrunt
 
             - name: Terragrunt Version Check
-              working-directory: infrastructure/skyu-vpc-pluralith
+              working-directory: infrastructure/${{ secrets.SKYU_RESOURCE_NAME }}
               run: terragrunt version                
 
             - name: Terragrunt Init
