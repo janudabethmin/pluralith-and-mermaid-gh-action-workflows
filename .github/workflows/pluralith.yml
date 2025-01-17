@@ -72,4 +72,4 @@ jobs:
               run: terragrunt init --terragrunt-non-interactive
 
             - name: Look at the files in the skyu-vpc-pluralith directory
-              run: ls -la ./infrastructure/skyu-vpc-pluralith/.terragrunt-cache/Z2UvCguaXsYcYiaKcFQGF5Uectg/
+              run: ls -la ./infrastructure/skyu-vpc-pluralith/.terragrunt-cache/Z2UvCguaXsYcYiaKcFQGF5Uectg/raSuzJ0JPp8_naSqYIoyH0vxjf0/
