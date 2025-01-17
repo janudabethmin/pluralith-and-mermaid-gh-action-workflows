@@ -140,3 +140,10 @@ jobs:
             
             - name: ls in the Pluralith directory
               run: ls -la ./infrastructure/skyu-vpc-pluralith
+
+            - name: Output Pluralith_Diagram.pdf as an artifact
+              uses: actions/upload-artifact@v4
+              with:
+                name: Pluralith_Diagram
+                path: ./infrastructure/skyu-vpc-pluralith/Pluralith_Diagram.pdf
+                
