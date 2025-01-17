@@ -10,9 +10,9 @@ jobs:
         name: Pluralith Graph Generation
         runs-on: ubuntu-latest
         steps:
-            - name: Update 
+            - name: Update Ubuntu
               run: sudo apt-get update
-            - name: Checkout
+            - name: Checkout code
               uses: actions/checkout@v4
             - name: Configure AWS Credentials
               uses: aws-actions/configure-aws-credentials@v4
@@ -22,7 +22,7 @@ jobs:
                 aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
                 aws-region: us-east-1
             - name: Mkdir for Pluralith Executables
-              run: mkdir pluralith-executables && ls -la
+              run: mkdir pluralith-executables
             - name: Download Pluralith Executables from S3 bucket
               run: aws s3 sync s3://pluralith-executables/ ./pluralith-executables
             - name: Change permissions for Pluralith Executables
@@ -39,6 +39,10 @@ jobs:
               run: mv ./pluralith-executables/pluralith-cli-graphing ~/Pluralith/bin/
             - name: Check whether the pluralith-cli-graphing executable has been moved to the Pluralith directory
               run: ls -la ~/Pluralith/bin/
-            - name: Generate Pluralith Graph
+            - name: Install Terraform
+              uses: hashicorp/setup-terraform@v3
+            - name: Run Terraform Plan
+              run: cd ./infrastructure/skyu-vpc-pluralith && terraform init && terraform plan
+            - name: Look at the files in the skyu-vpc-pluralith directory
               run: ls -la ./infrastructure/skyu-vpc-pluralith
                 
