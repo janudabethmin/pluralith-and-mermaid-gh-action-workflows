@@ -101,15 +101,16 @@ jobs:
               working-directory: infrastructure/skyu-vpc-pluralith
               run: terraform init
                 
-            - name: Generate terraform.tfvars from terragrunt.hcl inputs
+            - name: Extract and Generate terraform.tfvars from terragrunt.hcl
               run: |
                 cd ./infrastructure/skyu-vpc-pluralith
       
-                # Extract inputs block from the terragrunt.hcl file
-                inputs=$(grep -oP 'inputs\s*=\s*\{[^}]*\}' terragrunt.hcl)
+                # Extract the inputs block directly from terragrunt.hcl
+                inputs=$(awk '/inputs\s*=\s*{/ {f=1} f {print} /}/ {f=0}' terragrunt.hcl)
       
-                # Clean up the inputs and convert them to terraform.tfvars format
-                echo "$inputs" | sed -E 's/\s*=\s*/ = /g' | sed 's/inputs = {/''/' | sed 's/}//' | sed 's/\s*//g' > terraform.tfvars
+                # Clean up the inputs and convert to terraform.tfvars format
+                echo "$inputs" | sed 's/inputs = {/ /' | sed 's/}/ /' | sed 's/ //g' | sed 's/\(.*\)=\(.*\)/\1 = "\2"/' > terraform.tfvars
+      
       
             - name: Verify terraform.tfvars file
               run: |
