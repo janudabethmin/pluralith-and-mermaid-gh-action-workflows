@@ -105,12 +105,12 @@ jobs:
               run: |
                 cd ./infrastructure/skyu-vpc-pluralith
       
-                # Extract inputs from the terragrunt.hcl file
+                # Extract inputs block from the terragrunt.hcl file
                 inputs=$(grep -oP 'inputs\s*=\s*\{[^}]*\}' terragrunt.hcl)
       
-                # Clean up the inputs and convert to terraform.tfvars format
-                echo "$inputs" | sed -E 's/\s*=\s*/ = /g' | sed 's/inputs = {/''/' | sed 's/}//' > terraform.tfvars
-        
+                # Clean up the inputs and convert them to terraform.tfvars format
+                echo "$inputs" | sed -E 's/\s*=\s*/ = /g' | sed 's/inputs = {/''/' | sed 's/}//' | sed 's/\s*//g' > terraform.tfvars
+      
             - name: Verify terraform.tfvars file
               run: |
                 cat ./infrastructure/skyu-vpc-pluralith/terraform.tfvars
