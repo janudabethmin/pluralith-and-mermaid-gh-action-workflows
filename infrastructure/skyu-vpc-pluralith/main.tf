@@ -9,9 +9,7 @@ terraform {
 
 module "vpc" {
 
-  # source = "../../../../../modules/aws_modules/vpc_1.0.0"
-  source = "../../modules/aws_modules/vpc_1.0.0"
-
+  source = "../../../../../modules/aws_modules/vpc_1.0.0"
 
   name = var.name
 
