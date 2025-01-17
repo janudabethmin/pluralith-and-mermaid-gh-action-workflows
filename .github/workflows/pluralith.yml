@@ -82,24 +82,25 @@ jobs:
             - name: Generate provider.tf
               run: |
                 cd ./infrastructure/skyu-vpc-pluralith
-                # Extract the backend block using awk
                 backend=$(awk '/backend = \"/{flag=1;next}/}/{flag=0}flag' terragrunt.hcl)
-      
-                # Ensure proper formatting and handle edge cases
+                  
                 backend=$(echo "$backend" | sed 's/^[ \t]*//;s/[ \t]*$//')
-      
-                # Generate provider.tf
+                  
+                if [ -z "$backend" ]; then
+                  echo "Error: No backend configuration found in terragrunt.hcl"
+                  exit 1
+                fi
+                  
                 cat <<EOF > provider.tf
-                  terraform {
-                    backend "s3" {
-                      $backend
-                    }
+                terraform {
+                  backend "s3" {
+                    $backend
                   }
+                }
                 EOF
-                
+  
                 echo "Generated provider.tf:"
                 cat provider.tf
-      
 
             - name: Run Terraform Plan
               run: cd ./infrastructure/skyu-vpc-pluralith && terraform init && terraform plan
