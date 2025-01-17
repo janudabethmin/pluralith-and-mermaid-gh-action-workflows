@@ -101,12 +101,25 @@ jobs:
               working-directory: infrastructure/skyu-vpc-pluralith
               run: terraform init
                 
-            - name: Use Terraform Console to Generate terraform.tfvars
+            - name: Generate terraform.tfvars from all input variables
               run: |
                 cd ./infrastructure/skyu-vpc-pluralith
+      
+                # List all input variables in the Terragrunt/Terraform configuration
                 terraform console <<EOF
-                jsonencode(parse("terragrunt.hcl"))
-                EOF > terraform.tfvars
+                # Extract all variables and print them in the tfvars format
+                # This will iterate over all input variables and generate corresponding entries in terraform.tfvars
+                output "all_input_variables" {
+                  value = [
+                    for v in var : "${v} = \${var.${v}}"
+                  ]
+                }
+                EOF
+      
+                # Alternatively, extract them as key-value pairs and create terraform.tfvars
+                for var in $(terraform console -json -state=terraform.tfstate show | jq -r '.values.root_module.resources[] | select(.type == "aws_security_group").values.id'); do
+                  echo "$var = \"\${var.$var}\"" >> terraform.tfvars
+                done
         
             - name: Verify terraform.tfvars file
               run: |
