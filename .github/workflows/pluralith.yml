@@ -71,7 +71,7 @@ jobs:
               working-directory: infrastructure/${{ secrets.SKYU_RESOURCE_NAME }}
               run: terragrunt init --terragrunt-non-interactive
 
-            - name: Look at the files in the ${{ secrets.SKYU_RESOURCE_NAME }} directory
+            - name: Look at the cache files in the directory
               run: ls -la ./infrastructure/${{ secrets.SKYU_RESOURCE_NAME }}/.terragrunt-cache
 
             - name: Find the cache directory containing providers.tf
