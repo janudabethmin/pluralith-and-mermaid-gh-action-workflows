@@ -104,11 +104,9 @@ jobs:
             - name: Extract inputs and create terraform.tfvars
               run: |
                 cd ./infrastructure/skyu-vpc-pluralith
-                
-                # Extract the inputs block from terragrunt.hcl and write it to terraform.tfvars
-                awk '/inputs\s*=\s*{/ {f=1} f && /}/ {f=0} f' terragrunt.hcl | \
-                sed 's/^[[:space:]]*//g' | sed 's/[[:space:]]*$//g' | \
-                sed 's/\s*=\s*/ = /g' > terraform.tfvars
+      
+                # Extract inputs block and format as terraform.tfvars
+                awk '/inputs\s*=\s*{/,/}/' terragrunt.hcl | sed 's/inputs = {//' | sed 's/}//' | sed 's/^[[:space:]]*//g' | sed 's/\s*=\s*/ = /g' > terraform.tfvars
       
             - name: Verify terraform.tfvars file
               run: |
