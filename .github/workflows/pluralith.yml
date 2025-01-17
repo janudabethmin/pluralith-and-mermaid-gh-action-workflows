@@ -93,13 +93,13 @@ jobs:
               run: |
                 cat ./infrastructure/skyu-vpc-pluralith/provider.tf
                 
-                - name: Set up Go and HCL2 JSON Converter
-                run: |
-                  sudo apt-get update
-                  sudo apt-get install -y golang-go jq curl
-                  curl -LO https://github.com/hashicorp/hcl/releases/download/v0.8.0/hcl2json_linux_amd64
-                  chmod +x hcl2json_linux_amd64
-                  sudo mv hcl2json_linux_amd64 /usr/local/bin/hcl2json
+            - name: Set up Go and HCL2 JSON Converter
+              run: |
+                sudo apt-get update
+                sudo apt-get install -y golang-go jq curl
+                curl -LO https://github.com/hashicorp/hcl/releases/download/v0.8.0/hcl2json_linux_amd64
+                chmod +x hcl2json_linux_amd64
+                sudo mv hcl2json_linux_amd64 /usr/local/bin/hcl2json
         
             - name: Convert Terragrunt HCL to JSON
               run: |
