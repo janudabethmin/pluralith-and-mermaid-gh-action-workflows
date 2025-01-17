@@ -46,7 +46,7 @@ jobs:
                 sed -i 's|\.\./\.\./\.\./||g' ./infrastructure/skyu-vpc-pluralith/main.tf
             - name: Show the modified main.tf file
               run: cat ./infrastructure/skyu-vpc-pluralith/main.tf
-              - name: Install jq
+            - name: Install jq
               run: sudo apt-get install -y jq
             - name: Parse Terragrunt inputs and generate terraform.tfvars
               run: |
