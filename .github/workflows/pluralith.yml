@@ -93,6 +93,10 @@ jobs:
               run: |
                 cat ./infrastructure/skyu-vpc-pluralith/provider.tf
 
+            - name: Modify all module source paths in main.tf (Remove ../../../)
+              run: |
+                sed -i 's|\.\./\.\./\.\./||g' ./infrastructure/skyu-vpc-pluralith/main.tf           
+
             - name: Terraform init
               working-directory: infrastructure/skyu-vpc-pluralith
               run: terraform init
