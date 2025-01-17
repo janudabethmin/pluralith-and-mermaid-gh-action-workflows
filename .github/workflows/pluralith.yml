@@ -68,17 +68,17 @@ jobs:
               run: terragrunt version                
 
             - name: Terragrunt Init
-              working-directory: infrastructure/skyu-vpc-pluralith
+              working-directory: infrastructure/${{ secrets.SKYU_RESOURCE_NAME }}
               run: terragrunt init --terragrunt-non-interactive
 
-            - name: Look at the files in the skyu-vpc-pluralith directory
-              run: ls -la ./infrastructure/skyu-vpc-pluralith/.terragrunt-cache
+            - name: Look at the files in the ${{ secrets.SKYU_RESOURCE_NAME }} directory
+              run: ls -la ./infrastructure/${{ secrets.SKYU_RESOURCE_NAME }}/.terragrunt-cache
 
             - name: Find the cache directory containing providers.tf
               id: cache-dir
               run: |
                 # Find the directory containing provider.tf in the cache
-                CACHE_DIR=$(find ./infrastructure/skyu-vpc-pluralith/.terragrunt-cache -type f -name "provider.tf" -exec dirname {} \;)
+                CACHE_DIR=$(find ./infrastructure/${{ secrets.SKYU_RESOURCE_NAME }}/.terragrunt-cache -type f -name "provider.tf" -exec dirname {} \;)
                 echo "Cache directory found: $CACHE_DIR"
                 echo "CACHE_DIR=$CACHE_DIR" >> $GITHUB_ENV
 
@@ -86,19 +86,19 @@ jobs:
               run: |
                 # Copy the provider.tf file from the found cache directory
                 if [ -f "$CACHE_DIR/provider.tf" ]; then
-                  cp "$CACHE_DIR/provider.tf" ./infrastructure/skyu-vpc-pluralith/provider.tf
+                  cp "$CACHE_DIR/provider.tf" ./infrastructure/${{ secrets.SKYU_RESOURCE_NAME }}/provider.tf
                 fi
 
             - name: Verify the providers.tf file has been copied
               run: |
-                cat ./infrastructure/skyu-vpc-pluralith/provider.tf
+                cat ./infrastructure/${{ secrets.SKYU_RESOURCE_NAME }}/provider.tf
 
             - name: Modify all module source paths in main.tf (Remove ../../../)
               run: |
-                sed -i 's|\.\./\.\./\.\./||g' ./infrastructure/skyu-vpc-pluralith/main.tf           
+                sed -i 's|\.\./\.\./\.\./||g' ./infrastructure/${{ secrets.SKYU_RESOURCE_NAME }}/main.tf           
 
             - name: Terraform init
-              working-directory: infrastructure/skyu-vpc-pluralith
+              working-directory: infrastructure/${{ secrets.SKYU_RESOURCE_NAME }}
               run: terraform init
 
             - name: Install HCL parser
@@ -107,7 +107,7 @@ jobs:
             - name: Parse terragrunt.hcl and create terraform.tfvars
               run: |
 
-                cd ./infrastructure/skyu-vpc-pluralith
+                cd ./infrastructure/${{ secrets.SKYU_RESOURCE_NAME }}
 
                 # Parse the terragrunt.hcl file to get the inputs block using jq
                 INPUTS=$(grep -A 1000 "inputs =" terragrunt.hcl | tail -n +2 | head -n -1)
@@ -128,22 +128,22 @@ jobs:
 
             - name: Verify terraform.tfvars file
               run: |
-                cat ./infrastructure/skyu-vpc-pluralith/terraform.tfvars
+                cat ./infrastructure/${{ secrets.SKYU_RESOURCE_NAME }}/terraform.tfvars
             
             - name: Terraform plan
-              working-directory: infrastructure/skyu-vpc-pluralith
+              working-directory: infrastructure/${{ secrets.SKYU_RESOURCE_NAME }}
               run: terraform plan
 
             - name: Pluralith Graph Generation
-              working-directory: infrastructure/skyu-vpc-pluralith
+              working-directory: infrastructure/${{ secrets.SKYU_RESOURCE_NAME }}
               run: pluralith graph --local-only
             
             - name: ls in the Pluralith directory
-              run: ls -la ./infrastructure/skyu-vpc-pluralith
+              run: ls -la ./infrastructure/${{ secrets.SKYU_RESOURCE_NAME }}
 
             - name: Output Pluralith_Diagram.pdf as an artifact
               uses: actions/upload-artifact@v4
               with:
                 name: Pluralith_Diagram
-                path: ./infrastructure/skyu-vpc-pluralith/Pluralith_Diagram.pdf
+                path: ./infrastructure/${{ secrets.SKYU_RESOURCE_NAME }}/Pluralith_Diagram.pdf
                 
