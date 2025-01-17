@@ -50,6 +50,7 @@ jobs:
               run: sudo apt-get install -y jq
             - name: Parse Terragrunt inputs and generate terraform.tfvars
               run: |
+                cd ./infrastructure/skyu-vpc-pluralith
                 # Extract inputs from terragrunt.hcl
                 inputs=$(grep -A 100 "inputs = {" terragrunt.hcl | sed -n '/inputs = {/,/}/p' | sed '1d;$d')
       
@@ -60,6 +61,7 @@ jobs:
                 cat terraform.tfvars
             - name: Generate provider.tf
               run: |
+                cd ./infrastructure/skyu-vpc-pluralith
                 # Extract remote state configuration
                 backend=$(grep -A 100 "backend = " terragrunt.hcl | sed -n '/backend = {/,/}/p' | sed '1d;$d')
       
