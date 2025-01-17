@@ -93,23 +93,13 @@ jobs:
               run: |
                 cat ./infrastructure/skyu-vpc-pluralith/provider.tf
                 
-            - name: Set up Go and HCL2 JSON Converter
+            - name: Use Terraform Console to Generate terraform.tfvars
               run: |
-                sudo apt-get update
-                sudo apt-get install -y golang-go jq curl
-                curl -LO https://github.com/hashicorp/hcl/releases/download/v0.8.0/hcl2json_linux_amd64
-                chmod +x hcl2json_linux_amd64
-                sudo mv hcl2json_linux_amd64 /usr/local/bin/hcl2json
+                cd ./infrastructure/skyu-vpc-pluralith
+                terraform console <<EOF
+                jsonencode(parse("terragrunt.hcl"))
+                EOF > terraform.tfvars
         
-            - name: Convert Terragrunt HCL to JSON
-              run: |
-                hcl2json infrastructure/skyu-vpc-pluralith/terragrunt.hcl > infrastructure/skyu-vpc-pluralith/terragrunt.json
-        
-            - name: Parse JSON and Generate terraform.tfvars
-              run: |
-                # Extract inputs from the JSON and generate tfvars
-                jq -r '.inputs | to_entries | .[] | "\(.key) = \(.value | @json)"' infrastructure/skyu-vpc-pluralith/terragrunt.json > infrastructure/skyu-vpc-pluralith/terraform.tfvars
-         
             - name: Verify terraform.tfvars file
               run: |
                 cat ./infrastructure/skyu-vpc-pluralith/terraform.tfvars
