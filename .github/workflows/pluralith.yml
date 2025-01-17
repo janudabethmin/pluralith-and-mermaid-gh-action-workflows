@@ -12,8 +12,10 @@ jobs:
         steps:
             - name: Update Ubuntu
               run: sudo apt-get update
+
             - name: Checkout code
               uses: actions/checkout@v4
+
             - name: Configure AWS Credentials
               uses: aws-actions/configure-aws-credentials@v4
               with:
@@ -21,60 +23,86 @@ jobs:
                 aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
                 aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
                 aws-region: us-east-1
+
             - name: Mkdir for Pluralith Executables
               run: mkdir pluralith-executables
+
             - name: Download Pluralith Executables from S3 bucket
               run: aws s3 sync s3://pluralith-executables/ ./pluralith-executables
+
             - name: Change permissions for Pluralith Executables
               run: chmod +x ./pluralith-executables/pluralith && chmod +x ./pluralith-executables/pluralith-cli-graphing
+
             - name: Check executables have been downloaded and permissions have been set
               run: ls -la ./pluralith-executables
+
             - name: Add pluralith to PATH
               run: mv ./pluralith-executables/pluralith /usr/local/bin/pluralith
+
             - name: Pluralith login
               run: pluralith login --api-key ${{ secrets.PLURALITH_API_KEY }}
+
             - name: Check whether the Pluralith directory exists
               run: ls -la ~/Pluralith
+
             - name: Move pluralith-cli-graphing to the Pluralith directory
               run: mv ./pluralith-executables/pluralith-cli-graphing ~/Pluralith/bin/
+
             - name: Check whether the pluralith-cli-graphing executable has been moved to the Pluralith directory
               run: ls -la ~/Pluralith/bin/
+
             - name: Install Terraform
               uses: hashicorp/setup-terraform@v3
+
             - name: Modify all module source paths in main.tf (Remove ../../../)
               run: |
                 sed -i 's|\.\./\.\./\.\./||g' ./infrastructure/skyu-vpc-pluralith/main.tf
+
             - name: Show the modified main.tf file
               run: cat ./infrastructure/skyu-vpc-pluralith/main.tf
+
             - name: Install jq
               run: sudo apt-get install -y jq
+
             - name: Parse Terragrunt inputs and generate terraform.tfvars
               run: |
                 cd ./infrastructure/skyu-vpc-pluralith
-                # Extract the entire inputs block
-                awk '/inputs = \{/{flag=1; next} /\}/{flag=0} flag {print}' terragrunt.hcl > terraform.tfvars
+                # Extract the entire inputs block using awk
+                inputs=$(awk '/inputs = \{/{flag=1;next}/\}/{flag=0}flag' terragrunt.hcl)
                 
+                # Remove leading and trailing spaces or extra newlines
+                inputs=$(echo "$inputs" | sed 's/^[ \t]*//;s/[ \t]*$//')
+                
+                # Write to terraform.tfvars
+                echo "$inputs" > terraform.tfvars
+      
                 echo "Generated terraform.tfvars:"
                 cat terraform.tfvars
-            - name: Generate providers.tf
+      
+            - name: Generate provider.tf
               run: |
-                  cd ./infrastructure/skyu-vpc-pluralith
-                  # Extract the backend block attributes correctly
-                  awk '/backend = \"/{flag=1; next} /\}/{flag=0} flag {print}' terragrunt.hcl > backend.tmp
-  
-                  # Generate providers.tf without nesting "config" block
-                  cat <<EOF > providers.tf
+                cd ./infrastructure/skyu-vpc-pluralith
+                # Extract the backend block using awk
+                backend=$(awk '/backend = \"/{flag=1;next}/}/{flag=0}flag' terragrunt.hcl)
+      
+                # Ensure proper formatting and handle edge cases
+                backend=$(echo "$backend" | sed 's/^[ \t]*//;s/[ \t]*$//')
+      
+                # Generate provider.tf
+                cat <<EOF > provider.tf
                   terraform {
                     backend "s3" {
-                      $(cat backend.tmp)
+                      $backend
                     }
                   }
-                  EOF
-                  
-                  echo "Generated providers.tf:"
-                  cat providers.tf
-                  rm backend.tmp
+                EOF
+                
+                echo "Generated provider.tf:"
+                cat provider.tf
+      
+
             - name: Run Terraform Plan
               run: cd ./infrastructure/skyu-vpc-pluralith && terraform init && terraform plan
+
             - name: Look at the files in the skyu-vpc-pluralith directory
               run: ls -la ./infrastructure/skyu-vpc-pluralith
