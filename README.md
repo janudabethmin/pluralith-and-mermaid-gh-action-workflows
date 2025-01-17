@@ -1,2 +1,2 @@
 - [x] Find a way to fix the ../../../ issue.
-- [ ] Find a way to convert `terragrunt.hcl` into `providers.tf` and `terraform.tfvars`.
+- [x] Find a way to convert `terragrunt.hcl` into `providers.tf` and `terraform.tfvars`.
