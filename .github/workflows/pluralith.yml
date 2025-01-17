@@ -52,30 +52,28 @@ jobs:
               run: |
                 cd ./infrastructure/skyu-vpc-pluralith
                 # Extract the entire inputs block
-                inputs=$(awk '/inputs = \{/{flag=1;next}/}/{flag=0}flag' terragrunt.hcl)
-                
-                # Write to terraform.tfvars
-                echo "$inputs" > terraform.tfvars
+                awk '/inputs = \{/{flag=1; next} /\}/{flag=0} flag {print}' terragrunt.hcl > terraform.tfvars
                 
                 echo "Generated terraform.tfvars:"
                 cat terraform.tfvars
-            - name: Generate provider.tf
+            - name: Generate providers.tf
               run: |
-                cd ./infrastructure/skyu-vpc-pluralith
-                # Extract the backend block
-                backend=$(awk '/backend = \"/{flag=1;next}/}/{flag=0}flag' terragrunt.hcl)
-
-                # Generate provider.tf
-                cat <<EOF > provider.tf
-                terraform {
-                  backend "s3" {
-                    $backend
+                  cd ./infrastructure/skyu-vpc-pluralith
+                  # Extract the backend block attributes correctly
+                  awk '/backend = \"/{flag=1; next} /\}/{flag=0} flag {print}' terragrunt.hcl > backend.tmp
+  
+                  # Generate providers.tf without nesting "config" block
+                  cat <<EOF > providers.tf
+                  terraform {
+                    backend "s3" {
+                      $(cat backend.tmp)
+                    }
                   }
-                }
-                EOF
-                
-                echo "Generated provider.tf:"
-                cat provider.tf
+                  EOF
+                  
+                  echo "Generated providers.tf:"
+                  cat providers.tf
+                  rm backend.tmp
             - name: Run Terraform Plan
               run: cd ./infrastructure/skyu-vpc-pluralith && terraform init && terraform plan
             - name: Look at the files in the skyu-vpc-pluralith directory
