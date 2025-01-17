@@ -96,21 +96,19 @@ jobs:
             - name: Install HCL parser
               run: |
                 sudo apt-get install -y python3-pip
-                pip3 install hcl2
+                pip3 install python-hcl
 
             - name: Extract inputs from Terragrunt and create terraform.tfvars
               run: |
-                # Use Python script to extract inputs from the Terragrunt HCL configuration
-                python3 -c "
-                import hcl2
+                import hcl
                 import os
 
                 # Define the Terragrunt HCL file path
                 terragrunt_file = './infrastructure/skyu-vpc-pluralith/terragrunt.hcl'
 
-                # Parse the Terragrunt configuration using hcl2
+                # Parse the Terragrunt configuration using python-hcl
                 with open(terragrunt_file, 'r') as f:
-                    terragrunt_data = hcl2.load(f)
+                    terragrunt_data = hcl.load(f)
 
                 # Extract inputs block
                 inputs = terragrunt_data.get('inputs', {})
