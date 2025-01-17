@@ -92,6 +92,10 @@ jobs:
             - name: Verify the providers.tf file has been copied
               run: |
                 cat ./infrastructure/skyu-vpc-pluralith/provider.tf
+
+            - name: Terraform init
+              working-directory: infrastructure/skyu-vpc-pluralith
+              run: terraform init
                 
             - name: Use Terraform Console to Generate terraform.tfvars
               run: |
