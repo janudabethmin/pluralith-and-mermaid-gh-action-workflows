@@ -1,6 +1,9 @@
 name: Pluralith Workflox
 run-name: Pluralith Workflow
 on:
+    push:
+        branches:
+            - main
     workflow_dispatch:
 jobs:
     pluralith:
