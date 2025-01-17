@@ -101,25 +101,15 @@ jobs:
               working-directory: infrastructure/skyu-vpc-pluralith
               run: terraform init
                 
-            - name: Extract Input Variables from .tf files
+            - name: Generate terraform.tfvars from terragrunt.hcl inputs
               run: |
                 cd ./infrastructure/skyu-vpc-pluralith
-                
-                # Extract variable names from Terraform configuration files (e.g., *.tf files)
-                variables=$(grep -oP 'variable\s+"(\w+)"' *.tf | awk '{print $2}' | tr -d '"')
       
-                # Generate terraform.tfvars from the variables
-                for var in $variables; do
-                  # Use grep to find default values or leave empty if not defined
-                  default_value=$(grep -oP "variable\s+\"$var\".*\n\s+default\s*=\s*[^#]*" *.tf | awk -F'=' '{print $2}' | tr -d '[:space:]' | tr -d '"')
-                  if [ -z "$default_value" ]; then
-                    # If no default value, set to an empty value
-                    echo "$var = \"\"" >> terraform.tfvars
-                  else
-                    # If default value exists, use it
-                    echo "$var = \"$default_value\"" >> terraform.tfvars
-                  fi
-                done
+                # Extract inputs from the terragrunt.hcl file
+                inputs=$(grep -oP 'inputs\s*=\s*\{[^}]*\}' terragrunt.hcl)
+      
+                # Clean up the inputs and convert to terraform.tfvars format
+                echo "$inputs" | sed -E 's/\s*=\s*/ = /g' | sed 's/inputs = {/''/' | sed 's/}//' > terraform.tfvars
         
             - name: Verify terraform.tfvars file
               run: |
