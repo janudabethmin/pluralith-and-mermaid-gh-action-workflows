@@ -100,14 +100,29 @@ jobs:
             - name: Terraform init
               working-directory: infrastructure/skyu-vpc-pluralith
               run: terraform init
-                
-            - name: Extract inputs and create terraform.tfvars
+
+            - name: Parse terragrunt.hcl and create terraform.tfvars
               run: |
+
                 cd ./infrastructure/skyu-vpc-pluralith
-      
-                # Extract inputs block and format as terraform.tfvars
-                awk '/inputs\s*=\s*{/,/}/' terragrunt.hcl | sed 's/inputs = {//' | sed 's/}//' | sed 's/^[[:space:]]*//g' | sed 's/\s*=\s*/ = /g' > terraform.tfvars
-      
+
+                # Parse the terragrunt.hcl file to get the inputs block using jq
+                INPUTS=$(grep -A 1000 "inputs =" terragrunt.hcl | tail -n +2 | head -n -1)
+                
+                # Remove leading/trailing spaces
+                INPUTS=$(echo "$INPUTS" | sed 's/^[ \t]*//;s/[ \t]*$//')
+
+                # Initialize terraform.tfvars file
+                echo "" > terraform.tfvars
+
+                # Convert the inputs block into a format suitable for terraform.tfvars
+                echo "$INPUTS" | while IFS= read -r line
+                do
+                  # Replace `=` with `=` and format as terraform variable syntax
+                  line=$(echo "$line" | sed -E 's/([a-zA-Z0-9_]+)\s*=\s*(.*)/\1 = \2/')
+                  echo "$line" >> terraform.tfvars
+                done
+
             - name: Verify terraform.tfvars file
               run: |
                 cat ./infrastructure/skyu-vpc-pluralith/terraform.tfvars
