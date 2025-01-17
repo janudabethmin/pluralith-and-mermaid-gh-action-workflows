@@ -34,8 +34,7 @@ jobs:
               run: chmod +x ./pluralith-executables/pluralith && chmod +x ./pluralith-executables/pluralith-cli-graphing
 
             - name: Check executables have been downloaded and permissions have been set
-              working-directory: pluralith-executables
-              run: ls -la 
+              run: ls -la ./pluralith-executables
 
             - name: Add pluralith to PATH
               run: mv ./pluralith-executables/pluralith /usr/local/bin/pluralith
@@ -44,15 +43,13 @@ jobs:
               run: pluralith login --api-key ${{ secrets.PLURALITH_API_KEY }}
 
             - name: Check whether the Pluralith directory exists
-              working-directory: Pluralith
-              run: ls -la 
+              run: ls -la ~/Pluralith
 
             - name: Move pluralith-cli-graphing to the Pluralith directory
               run: mv ./pluralith-executables/pluralith-cli-graphing ~/Pluralith/bin/
 
             - name: Check whether the pluralith-cli-graphing executable has been moved to the Pluralith directory
-              working-directory: Pluralith/bin/
-              run: ls -la 
+              run: ls -la ~/Pluralith/bin/
 
             - name: Setup Terraform
               uses: hashicorp/setup-terraform@v3
@@ -71,7 +68,7 @@ jobs:
               run: terragrunt version                
 
             - name: Terragrunt Init
-              working-directory: infrastructure/skyu-vpc-pluralith
+              working-directory: infrastructure/skyu-vpc-demo
               run: terragrunt init --terragrunt-non-interactive
 
             - name: Look at the files in the skyu-vpc-pluralith directory
