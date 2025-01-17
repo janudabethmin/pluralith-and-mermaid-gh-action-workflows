@@ -68,7 +68,7 @@ jobs:
               run: terragrunt version                
 
             - name: Terragrunt Init
-              working-directory: infrastructure/skyu-vpc-demo
+              working-directory: infrastructure/skyu-vpc-pluralith
               run: terragrunt init --terragrunt-non-interactive
 
             - name: Look at the files in the skyu-vpc-pluralith directory
