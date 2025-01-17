@@ -92,3 +92,42 @@ jobs:
             - name: Verify the providers.tf file has been copied
               run: |
                 cat ./infrastructure/skyu-vpc-pluralith/provider.tf
+
+            - name: Install HCL parser
+              run: |
+                sudo apt-get install -y python3-pip
+                pip3 install hcl
+
+            - name: Extract inputs from Terragrunt and create terraform.tfvars
+              run: |
+                # Use Python script to extract inputs from the Terragrunt HCL configuration
+                python3 -c "
+                import hcl
+                import os
+
+                # Define the Terragrunt HCL file path
+                terragrunt_file = './infrastructure/skyu-vpc-pluralith/terragrunt.hcl'
+
+                # Parse the Terragrunt configuration
+                with open(terragrunt_file, 'r') as f:
+                    terragrunt_data = hcl.load(f)
+
+                # Extract inputs block
+                inputs = terragrunt_data.get('inputs', {})
+
+                # Create terraform.tfvars content
+                tfvars_content = ''
+                for key, value in inputs.items():
+                    tfvars_content += f'{key} = {repr(value)}\n'
+
+                # Write the content to terraform.tfvars
+                tfvars_file = './infrastructure/skyu-vpc-pluralith/terraform.tfvars'
+                with open(tfvars_file, 'w') as f:
+                    f.write(tfvars_content)
+
+                print('terraform.tfvars file has been generated at:', tfvars_file)
+                                "
+
+            - name: Verify terraform.tfvars file
+              run: |
+                cat ./infrastructure/skyu-vpc-pluralith/terraform.tfvars
