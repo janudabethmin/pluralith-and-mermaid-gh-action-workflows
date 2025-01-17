@@ -135,6 +135,7 @@ jobs:
               run: terraform plan
 
             - name: Pluralith Graph Generation
+              working-directory: infrastructure/skyu-vpc-pluralith
               run: pluralith graph --local-only
             
             - name: ls in the Pluralith directory
