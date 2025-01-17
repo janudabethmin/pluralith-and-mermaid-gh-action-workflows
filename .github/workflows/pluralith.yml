@@ -129,3 +129,7 @@ jobs:
             - name: Verify terraform.tfvars file
               run: |
                 cat ./infrastructure/skyu-vpc-pluralith/terraform.tfvars
+            
+            - name: Terraform plan
+              working-directory: infrastructure/skyu-vpc-pluralith
+              run: terraform plan
