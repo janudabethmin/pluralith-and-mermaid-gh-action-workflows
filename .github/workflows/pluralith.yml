@@ -101,6 +101,9 @@ jobs:
               working-directory: infrastructure/skyu-vpc-pluralith
               run: terraform init
 
+            - name: Install HCL parser
+              run: sudo apt-get install -y jq
+
             - name: Parse terragrunt.hcl and create terraform.tfvars
               run: |
 
