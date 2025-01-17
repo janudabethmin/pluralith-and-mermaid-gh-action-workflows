@@ -92,40 +92,43 @@ jobs:
             - name: Verify the providers.tf file has been copied
               run: |
                 cat ./infrastructure/skyu-vpc-pluralith/provider.tf
-
-            - name: Install HCL parser
+                
+            - name: Install hcl2json
               run: |
-                sudo apt-get install -y python3-pip
-                pip3 install python-hcl
-
-            - name: Extract inputs from Terragrunt and create terraform.tfvars
+                sudo apt-get install -y golang
+                wget https://github.com/hashicorp/hcl/releases/download/v0.8.0/hcl2json_linux_amd64 -O /usr/local/bin/hcl2json
+                chmod +x /usr/local/bin/hcl2json
+  
+            - name: Convert Terragrunt HCL to JSON
               run: |
-                import hcl
-                import os
-
-                # Define the Terragrunt HCL file path
-                terragrunt_file = './infrastructure/skyu-vpc-pluralith/terragrunt.hcl'
-
-                # Parse the Terragrunt configuration using python-hcl
-                with open(terragrunt_file, 'r') as f:
-                    terragrunt_data = hcl.load(f)
-
-                # Extract inputs block
+                hcl2json ./infrastructure/skyu-vpc-pluralith/terragrunt.hcl > terragrunt.json
+  
+            - name: Extract inputs and create terraform.tfvars
+              run: |
+                # Use Python to read the JSON and extract the inputs
+                python3 -c "
+                import json
+                
+                # Load the converted JSON file
+                with open('terragrunt.json', 'r') as f:
+                    terragrunt_data = json.load(f)
+                
+                # Extract the 'inputs' section
                 inputs = terragrunt_data.get('inputs', {})
-
+                
                 # Create terraform.tfvars content
                 tfvars_content = ''
                 for key, value in inputs.items():
                     tfvars_content += f'{key} = {repr(value)}\n'
-
+                
                 # Write the content to terraform.tfvars
                 tfvars_file = './infrastructure/skyu-vpc-pluralith/terraform.tfvars'
                 with open(tfvars_file, 'w') as f:
                     f.write(tfvars_content)
-
+                
                 print('terraform.tfvars file has been generated at:', tfvars_file)
-                                "
-                                
+                                "    
+                                                      
             - name: Verify terraform.tfvars file
               run: |
                 cat ./infrastructure/skyu-vpc-pluralith/terraform.tfvars
