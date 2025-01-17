@@ -10,10 +10,10 @@ jobs:
         name: Pluralith Graph Generation
         runs-on: ubuntu-latest
         steps:
-            - name: Checkout
-              uses: actions/checkout@v4
             - name: Update 
               run: sudo apt-get update
+            - name: Checkout
+              uses: actions/checkout@v4
             - name: Configure AWS Credentials
               uses: aws-actions/configure-aws-credentials@v4
               with:
@@ -22,7 +22,7 @@ jobs:
                 aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
                 aws-region: us-east-1
             - name: Mkdir for Pluralith Executables
-              run: mkdir pluralith-executables
+              run: mkdir pluralith-executables && ls -la
             - name: Download Pluralith Executables from S3 bucket
               run: aws s3 sync s3://pluralith-executables/ ./pluralith-executables
             - name: Change permissions for Pluralith Executables
@@ -40,5 +40,5 @@ jobs:
             - name: Check whether the pluralith-cli-graphing executable has been moved to the Pluralith directory
               run: ls -la ~/Pluralith/bin/
             - name: Generate Pluralith Graph
-              run: pwd
+              run: ls -la
                 
