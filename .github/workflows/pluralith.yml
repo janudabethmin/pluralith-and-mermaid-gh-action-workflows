@@ -51,59 +51,25 @@ jobs:
             - name: Check whether the pluralith-cli-graphing executable has been moved to the Pluralith directory
               run: ls -la ~/Pluralith/bin/
 
-            - name: Install Terraform
+            - name: Setup Terraform
               uses: hashicorp/setup-terraform@v3
+              with:
+                terraform_wrapper: false
 
-            - name: Modify all module source paths in main.tf (Remove ../../../)
-              run: |
-                sed -i 's|\.\./\.\./\.\./||g' ./infrastructure/skyu-vpc-pluralith/main.tf
+            - name: Download Terragrunt
+              run: >-
+                wget
+                https://github.com/gruntwork-io/terragrunt/releases/download/v0.50.6/terragrunt_linux_amd64
+                && mv terragrunt_linux_amd64 terragrunt && chmod u+x terragrunt && mv
+                terragrunt /usr/local/bin/terragrunt
 
-            - name: Show the modified main.tf file
-              run: cat ./infrastructure/skyu-vpc-pluralith/main.tf
+            - name: Terragrunt Version Check
+              working-directory: infrastructure/skyu-vpc-pluralith
+              run: terragrunt version                
 
-            - name: Install jq
-              run: sudo apt-get install -y jq
-
-            - name: Parse Terragrunt inputs and generate terraform.tfvars
-              run: |
-                cd ./infrastructure/skyu-vpc-pluralith
-                # Extract the entire inputs block using awk
-                inputs=$(awk '/inputs = \{/{flag=1;next}/\}/{flag=0}flag' terragrunt.hcl)
-                
-                # Remove leading and trailing spaces or extra newlines
-                inputs=$(echo "$inputs" | sed 's/^[ \t]*//;s/[ \t]*$//')
-                
-                # Write to terraform.tfvars
-                echo "$inputs" > terraform.tfvars
-      
-                echo "Generated terraform.tfvars:"
-                cat terraform.tfvars
-      
-            - name: Generate provider.tf
-              run: |
-                cd ./infrastructure/skyu-vpc-pluralith
-                backend=$(awk '/backend = \"/{flag=1;next}/}/{flag=0}flag' terragrunt.hcl)
-                  
-                backend=$(echo "$backend" | sed 's/^[ \t]*//;s/[ \t]*$//')
-                  
-                if [ -z "$backend" ]; then
-                  echo "Error: No backend configuration found in terragrunt.hcl"
-                  exit 1
-                fi
-                  
-                cat <<EOF > provider.tf
-                terraform {
-                  backend "s3" {
-                    $backend
-                  }
-                }
-                EOF
-  
-                echo "Generated provider.tf:"
-                cat provider.tf
-
-            - name: Run Terraform Plan
-              run: cd ./infrastructure/skyu-vpc-pluralith && terraform init && terraform plan
+            - name: Terragrunt Init
+              working-directory: infrastructure/skyu-vpc-pluralith
+              run: terragrunt init --terragrunt-non-interactive
 
             - name: Look at the files in the skyu-vpc-pluralith directory
               run: ls -la ./infrastructure/skyu-vpc-pluralith
