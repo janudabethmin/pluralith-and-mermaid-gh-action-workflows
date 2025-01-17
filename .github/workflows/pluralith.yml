@@ -51,20 +51,20 @@ jobs:
             - name: Parse Terragrunt inputs and generate terraform.tfvars
               run: |
                 cd ./infrastructure/skyu-vpc-pluralith
-                # Extract inputs from terragrunt.hcl
-                inputs=$(grep -A 100 "inputs = {" terragrunt.hcl | sed -n '/inputs = {/,/}/p' | sed '1d;$d')
-      
-                # Generate terraform.tfvars
+                # Extract the entire inputs block
+                inputs=$(awk '/inputs = \{/{flag=1;next}/}/{flag=0}flag' terragrunt.hcl)
+                
+                # Write to terraform.tfvars
                 echo "$inputs" > terraform.tfvars
-      
+                
                 echo "Generated terraform.tfvars:"
                 cat terraform.tfvars
             - name: Generate provider.tf
               run: |
                 cd ./infrastructure/skyu-vpc-pluralith
-                # Extract remote state configuration
-                backend=$(grep -A 100 "backend = " terragrunt.hcl | sed -n '/backend = {/,/}/p' | sed '1d;$d')
-      
+                # Extract the backend block
+                backend=$(awk '/backend = \"/{flag=1;next}/}/{flag=0}flag' terragrunt.hcl)
+
                 # Generate provider.tf
                 cat <<EOF > provider.tf
                 terraform {
@@ -73,7 +73,7 @@ jobs:
                   }
                 }
                 EOF
-
+                
                 echo "Generated provider.tf:"
                 cat provider.tf
             - name: Run Terraform Plan
