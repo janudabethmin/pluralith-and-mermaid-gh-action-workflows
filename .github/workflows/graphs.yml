@@ -1,10 +1,13 @@
-name: Mermaid Workflox
-run-name: Mermaid Workflow
+name: Pluralith and Mermaid Workflow
+run-name: Pluralith and Mermaid Workflow
 on:
+    push:
+        branches:
+            - main
     workflow_dispatch:
 jobs:
     pluralith:
-        name: Mermaid Graph Generation
+        name: Pluralith Graph Generation
         runs-on: ubuntu-latest
         steps:
             - name: Update Ubuntu
@@ -21,30 +24,23 @@ jobs:
                 aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
                 aws-region: us-east-1
             
-            - name: Outputs
-              id: vars
-              run: |
-                echo "terramaid_version=$(curl -s https://api.github.com/repos/RoseSecurity/Terramaid/releases/latest | grep tag_name | cut -d '"' -f 4)" >> $GITHUB_OUTPUT
-                case "${{ runner.arch }}" in
-                    "X64" )
-                      echo "arch=x86_64" >> $GITHUB_OUTPUT
-                      ;;
-                    "ARM64" )
-                      echo "arch=arm64" >> $GITHUB_OUTPUT
-                      ;;
-                esac
-          
-            - name: Setup Go
-              uses: actions/setup-go@v5
-              with:
-                go-version: 'stable'
-          
-            - name: Setup Terramaid
-              run: |
-                curl -L -o /tmp/terramaid.tar.gz "https://github.com/RoseSecurity/Terramaid/releases/download/${{ steps.vars.outputs.terramaid_version }}/Terramaid_Linux_${{ steps.vars.outputs.arch }}.tar.gz"
-                tar -xzvf /tmp/terramaid.tar.gz -C /tmp
-                mv -v /tmp/Terramaid /usr/local/bin/terramaid
-                chmod +x /usr/local/bin/terramaid
+            - name: Install Pluralith 
+              run: wget
+                https://github.com/Pluralith/pluralith-cli/releases/download/v0.2.2/pluralith_cli_linux_amd64_v0.2.2
+                && mv pluralith_cli_linux_amd64_v0.2.2 pluralith && chmod u+x pluralith && mv
+                pluralith /usr/local/bin/
+
+            - name: Pluralith login
+              run: pluralith login --api-key ${{ secrets.PLURALITH_API_KEY }}
+
+            - name: Check whether the Pluralith directory exists
+              run: ls -la ~/Pluralith
+
+            - name: Install Pluralith CLI Graphing
+              run: wget
+                https://github.com/Pluralith/pluralith-cli-graphing-release/releases/download/v0.2.1/pluralith_cli_graphing_linux_amd64_0.2.1
+                && mv pluralith_cli_graphing_linux_amd64_0.2.1 pluralith-cli-graphing && chmod u+x pluralith-cli-graphing && mv
+                pluralith-cli-graphing ~/Pluralith/bin/
 
             - name: Setup Terraform
               uses: hashicorp/setup-terraform@v3
@@ -129,9 +125,9 @@ jobs:
               working-directory: infrastructure/${{ secrets.SKYU_RESOURCE_NAME }}
               run: terraform plan
 
-            - name: Mermaid Graph Generation
+            - name: Pluralith Graph Generation
               working-directory: infrastructure/${{ secrets.SKYU_RESOURCE_NAME }}
-              run: terramaid run
+              run: pluralith graph --local-only
             
             - name: ls in the Pluralith directory
               run: ls -la ./infrastructure/${{ secrets.SKYU_RESOURCE_NAME }}
@@ -140,5 +136,5 @@ jobs:
               uses: actions/upload-artifact@v4
               with:
                 name: Pluralith_Diagram
-                path: ./infrastructure/${{ secrets.SKYU_RESOURCE_NAME }}/Terramaid.md
+                path: ./infrastructure/${{ secrets.SKYU_RESOURCE_NAME }}/Pluralith_Diagram.pdf
                 
