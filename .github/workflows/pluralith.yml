@@ -1,5 +1,5 @@
-name: Pluralith and Mermaid Workflow
-run-name: Pluralith and Mermaid Workflow
+name: Pluralith Workflow
+run-name: Pluralith Workflow
 on:
     workflow_dispatch:
 jobs:

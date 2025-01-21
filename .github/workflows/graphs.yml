@@ -1,5 +1,5 @@
-name: Pluralith Workflow
-run-name: Pluralith Workflow
+name: Pluralith and Mermaid Workflow
+run-name: Pluralith and Mermaid Workflow
 on:
     push:
         branches:
