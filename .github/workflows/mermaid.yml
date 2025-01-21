@@ -1,0 +1,147 @@
+name: Mermaid Workflox
+run-name: Mermaid Workflow
+on:
+    push:
+        branches:
+            - main
+    workflow_dispatch:
+jobs:
+    pluralith:
+        name: Mermaid Graph Generation
+        runs-on: ubuntu-latest
+        steps:
+            - name: Update Ubuntu
+              run: sudo apt-get update
+
+            - name: Checkout code
+              uses: actions/checkout@v4
+
+            - name: Configure AWS Credentials
+              uses: aws-actions/configure-aws-credentials@v4
+              with:
+                aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+                aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+                aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+                aws-region: us-east-1
+            
+            - name: Outputs
+              id: vars
+              run: |
+                echo "terramaid_version=$(curl -s https://api.github.com/repos/RoseSecurity/Terramaid/releases/latest | grep tag_name | cut -d '"' -f 4)" >> $GITHUB_OUTPUT
+                case "${{ runner.arch }}" in
+                    "X64" )
+                      echo "arch=x86_64" >> $GITHUB_OUTPUT
+                      ;;
+                    "ARM64" )
+                      echo "arch=arm64" >> $GITHUB_OUTPUT
+                      ;;
+                esac
+          
+            - name: Setup Go
+              uses: actions/setup-go@v5
+              with:
+                go-version: 'stable'
+          
+            - name: Setup Terramaid
+              run: |
+                curl -L -o /tmp/terramaid.tar.gz "https://github.com/RoseSecurity/Terramaid/releases/download/${{ steps.vars.outputs.terramaid_version }}/Terramaid_Linux_${{ steps.vars.outputs.arch }}.tar.gz"
+                tar -xzvf /tmp/terramaid.tar.gz -C /tmp
+                mv -v /tmp/Terramaid /usr/local/bin/terramaid
+                chmod +x /usr/local/bin/terramaid
+
+            - name: Setup Terraform
+              uses: hashicorp/setup-terraform@v3
+              with:
+                terraform_wrapper: false
+
+            - name: Download Terragrunt
+              run: >-
+                wget
+                https://github.com/gruntwork-io/terragrunt/releases/download/v0.50.6/terragrunt_linux_amd64
+                && mv terragrunt_linux_amd64 terragrunt && chmod u+x terragrunt && mv
+                terragrunt /usr/local/bin/terragrunt
+
+            - name: Terragrunt Version Check
+              working-directory: infrastructure/${{ secrets.SKYU_RESOURCE_NAME }}
+              run: terragrunt version                
+
+            - name: Terragrunt Init
+              working-directory: infrastructure/${{ secrets.SKYU_RESOURCE_NAME }}
+              run: terragrunt init --terragrunt-non-interactive
+
+            - name: Look at the cache files in the directory
+              run: ls -la ./infrastructure/${{ secrets.SKYU_RESOURCE_NAME }}/.terragrunt-cache
+
+            - name: Find the cache directory containing providers.tf
+              id: cache-dir
+              run: |
+                # Find the directory containing provider.tf in the cache
+                CACHE_DIR=$(find ./infrastructure/${{ secrets.SKYU_RESOURCE_NAME }}/.terragrunt-cache -type f -name "provider.tf" -exec dirname {} \;)
+                echo "Cache directory found: $CACHE_DIR"
+                echo "CACHE_DIR=$CACHE_DIR" >> $GITHUB_ENV
+
+            - name: Move providers.tf from the cache
+              run: |
+                # Copy the provider.tf file from the found cache directory
+                if [ -f "$CACHE_DIR/provider.tf" ]; then
+                  cp "$CACHE_DIR/provider.tf" ./infrastructure/${{ secrets.SKYU_RESOURCE_NAME }}/provider.tf
+                fi
+
+            - name: Verify the providers.tf file has been copied
+              run: |
+                cat ./infrastructure/${{ secrets.SKYU_RESOURCE_NAME }}/provider.tf
+
+            - name: Modify all module source paths in main.tf (Remove ../../../)
+              run: |
+                sed -i 's|\.\./\.\./\.\./||g' ./infrastructure/${{ secrets.SKYU_RESOURCE_NAME }}/main.tf           
+
+            - name: Terraform init
+              working-directory: infrastructure/${{ secrets.SKYU_RESOURCE_NAME }}
+              run: terraform init
+
+            - name: Install HCL parser
+              run: sudo apt-get install -y jq
+
+            - name: Parse terragrunt.hcl and create terraform.tfvars
+              run: |
+
+                cd ./infrastructure/${{ secrets.SKYU_RESOURCE_NAME }}
+
+                # Parse the terragrunt.hcl file to get the inputs block using jq
+                INPUTS=$(grep -A 1000 "inputs =" terragrunt.hcl | tail -n +2 | head -n -1)
+                
+                # Remove leading/trailing spaces
+                INPUTS=$(echo "$INPUTS" | sed 's/^[ \t]*//;s/[ \t]*$//')
+
+                # Initialize terraform.tfvars file
+                echo "" > terraform.tfvars
+
+                # Convert the inputs block into a format suitable for terraform.tfvars
+                echo "$INPUTS" | while IFS= read -r line
+                do
+                  # Replace `=` with `=` and format as terraform variable syntax
+                  line=$(echo "$line" | sed -E 's/([a-zA-Z0-9_]+)\s*=\s*(.*)/\1 = \2/')
+                  echo "$line" >> terraform.tfvars
+                done
+
+            - name: Verify terraform.tfvars file
+              run: |
+                cat ./infrastructure/${{ secrets.SKYU_RESOURCE_NAME }}/terraform.tfvars
+            
+            - name: Terraform plan
+              working-directory: infrastructure/${{ secrets.SKYU_RESOURCE_NAME }}
+              run: terraform plan
+
+            # - name: Pluralith Graph Generation
+            #   working-directory: infrastructure/${{ secrets.SKYU_RESOURCE_NAME }}
+            #   run: pluralith graph --local-only
+            
+            # - name: ls in the Pluralith directory
+            #   run: ls -la ./infrastructure/${{ secrets.SKYU_RESOURCE_NAME }}
+
+            # - name: Output Pluralith_Diagram.pdf as an artifact
+            #   uses: actions/upload-artifact@v4
+            #   with:
+            #     name: Pluralith_Diagram
+            #     path: ./infrastructure/${{ secrets.SKYU_RESOURCE_NAME }}/Pluralith_Diagram.pdf
+                
