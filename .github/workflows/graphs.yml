@@ -139,6 +139,7 @@ jobs:
                 path: ./infrastructure/${{ secrets.SKYU_RESOURCE_NAME }}/Pluralith_Diagram.pdf
 
     mermaid:
+        needs: pluralith
         name: Mermaid Graph Generation
         runs-on: ubuntu-latest
         steps:
